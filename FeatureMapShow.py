@@ -13,15 +13,15 @@ class FeatureMapVisualizition:
         self.original_image_path = original_image_path
         self.original_roi_path = original_roi_path
         self.feature_map_path = feature_map_path
-        self.feature_name = os.path.split(feature_map_path)[-1].replace(os.path.splitext(self.feature_map_path)[-1],'')
-        _, _, self.original_image_array = self.LoadNiiData(self.original_image_path, is_show_info=True)
-        _, _, self.original_roi_array = self.LoadNiiData(self.original_roi_path, is_show_info=True)
+        self.feature_name = (os.path.split(self.feature_map_path)[-1]).split('.')[0]
+        _, _, self.original_image_array = self.LoadNiiData(self.original_image_path, is_show_info=False)
+        _, _, self.original_roi_array = self.LoadNiiData(self.original_roi_path, is_show_info=False)
         self._max_roi_index = np.argmax(np.sum(self.original_roi_array, axis=(0,1)))
-        _, _, self.original_feature_map_array = self.LoadNiiData(self.feature_map_path, is_show_info=True)
+        _, _, self.original_feature_map_array = self.LoadNiiData(self.feature_map_path, is_show_info=False)
         if os.path.splitext(self.feature_map_path)[-1] == '.nrrd':
             self.original_feature_map_array = self.GenerarionFeatureROI()
         else:
-            _, _, self.original_feature_map_array = self.LoadNiiData(self.feature_map_path, is_show_info=True)
+            _, _, self.original_feature_map_array = self.LoadNiiData(self.feature_map_path, is_show_info=False)
 
 
     def GetIndexRangeInROI(self,roi_mask, target_value=1):
@@ -82,6 +82,18 @@ class FeatureMapVisualizition:
         new_data = new_data / np.max(new_data)
         return new_data
 
+    def ShowTransforedImage(self,store_path):
+        feature_map_show_array = self.original_feature_map_array[:, :, self._max_roi_index]
+        plt.title(self.feature_name)
+        plt.imshow(feature_map_show_array, cmap='gray')
+        plt.contour(self.original_roi_array[:, :, self._max_roi_index], colors='r')
+        plt.axis('off')
+        if store_path:
+            plt.savefig(store_path+'_transformed_image.jpg', format='jpg', dpi=300, bbox_inches='tight', pad_inches=0)
+            plt.savefig(store_path+'_transformed_image.eps', format='eps', dpi=600, bbox_inches='tight', pad_inches=0)
+
+        plt.show()
+
 
     def ShowColorByROI(self,background_array, fore_array, roi,color_map,threshold_value=1e-6, store_path='',
                        is_show=True):
@@ -102,18 +114,19 @@ class FeatureMapVisualizition:
         for index_x, index_y in zip(index_roi_x, index_roi_y):
             rgb_array[index_x, index_y, :] = background_array[index_x, index_y]
 
-        gci = plt.imshow(rgb_array)
-        plt.colorbar(gci)
+        plt.imshow(rgb_array, cmap=color_map)
+        plt.colorbar()
         plt.axis('off')
         plt.gca().set_axis_off()
         plt.title(self.feature_name)
         # plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        plt.margins(0.2, 0.2)
+        # plt.margins(0.1, 0.2)
         plt.gca().xaxis.set_major_locator(plt.NullLocator())
         plt.gca().yaxis.set_major_locator(plt.NullLocator())
         if store_path:
-            plt.savefig(store_path, format='tif', dpi=300, bbox_inches='tight', pad_inches=0)
-            plt.close()
+            plt.savefig(store_path+'.jpg', format='jpg', dpi=300, bbox_inches='tight', pad_inches=0)
+            plt.savefig(store_path+'.eps', format='eps', dpi=600, bbox_inches='tight', pad_inches=0)
+
         if is_show:
             plt.show()
         return rgb_array
@@ -134,10 +147,18 @@ class FeatureMapVisualizition:
 def main():
     image_path = r'C:\Users\zj\Desktop\SHGH\feature_map\3 Sag T2.nii.gz'
     roi_path = r'C:\Users\zj\Desktop\SHGH\feature_map\Untitled.nii.gz'
-    feature_map_path = r'D:\MyScript\RadiomicsFeatureVisualization\demo2\LLH.nii.gz'
+    feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\wl_image\HLL.nii.gz'
+    # feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\wl_image\HLH.nii.gz'
+    # feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\feature_map\log-sigma-3-0-mm-3D_glcm_InverseVariance.nrrd'
+
+    # feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\feature_map\wavelet-LLH_ngtdm_Strength.nrrd'
     featuremapvisualization = FeatureMapVisualizition()
     featuremapvisualization.LoadData(image_path, roi_path, feature_map_path)
-    featuremapvisualization.Show(color_map='rainbow')
+    store_path = r'C:\Users\zj\Desktop\SHGH\feature_map\feature_map_new'
+    store_figure_path = store_path+'\\' + (os.path.split(feature_map_path)[-1]).split('.')[0]
+    #hsv/jet/gist_rainbow
+    featuremapvisualization.Show(color_map='seismic', store_path=store_figure_path)
+    # featuremapvisualization.ShowTransforedImage(store_figure_path)
 if __name__ == '__main__':
     main()
 
