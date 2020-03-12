@@ -145,16 +145,14 @@ class FeatureMapVisualizition:
         self.ShowColorByROI(background_array, fore_array, roi, color_map=color_map, store_path=store_path)
 
 def main():
-    image_path = r'C:\Users\zj\Desktop\SHGH\feature_map\3 Sag T2.nii.gz'
-    roi_path = r'C:\Users\zj\Desktop\SHGH\feature_map\Untitled.nii.gz'
-    feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\wl_image\HLL.nii.gz'
-    # feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\wl_image\HLH.nii.gz'
-    # feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\feature_map\log-sigma-3-0-mm-3D_glcm_InverseVariance.nrrd'
+    image_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\data2.nii.gz'
+    roi_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\ROI.nii.gz'
+    feature_map_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\original_glcm_InverseVariance.nrrd'
 
     # feature_map_path = r'C:\Users\zj\Desktop\SHGH\feature_map\feature_map\wavelet-LLH_ngtdm_Strength.nrrd'
     featuremapvisualization = FeatureMapVisualizition()
     featuremapvisualization.LoadData(image_path, roi_path, feature_map_path)
-    store_path = r'C:\Users\zj\Desktop\SHGH\feature_map\feature_map_new'
+    store_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization'
     store_figure_path = store_path+'\\' + (os.path.split(feature_map_path)[-1]).split('.')[0]
     #hsv/jet/gist_rainbow
     featuremapvisualization.Show(color_map='seismic', store_path=store_figure_path)

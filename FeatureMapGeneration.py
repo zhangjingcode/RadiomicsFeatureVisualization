@@ -28,7 +28,7 @@ def GetFeatureMap(params_path, store_path, image_path, roi_path,voxelBasedSet=Tr
 
 if __name__ == "__main__":
 
-    image_path = r'C:\Users\zj\Desktop\SHGH\feature_map\3 Sag T2.nii.gz'
-    roi_path = r'C:\Users\zj\Desktop\SHGH\feature_map\Untitled.nii.gz'
-    save_path = r'D:\MyScript\RadiomicsFeatureVisualization\demo2'
+    image_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\data2.nii.gz'
+    roi_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\ROI.nii.gz'
+    save_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization'
     GetFeatureMap(r'D:\MyScript\RadiomicsParams.yaml', save_path, image_path, roi_path)
