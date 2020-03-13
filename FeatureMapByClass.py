@@ -106,12 +106,14 @@ class FeatureMapper:
         cropped_img.SetOrigin(img.GetOrigin())
         cropped_img.SetSpacing(img.GetSpacing())
 
-        from MeDIT.Visualization import Imshow3DArray
-        from MeDIT.Normalize import Normalize01
-        Imshow3DArray(Normalize01(np.transpose(cropped_img_array, (1,2,0))),
-                      roi=np.transpose(cropped_roi_array, (1,2,0)))
-        sitk.WriteImage(cropped_img, os.path.join(self.store_path, 'cropped_img.nii.gz'))
-        sitk.WriteImage(cropped_roi, os.path.join(self.store_path, 'cropped_roi.nii.gz'))
+        # check cropped image
+
+        # from MeDIT.Visualization import Imshow3DArray
+        # from MeDIT.Normalize import Normalize01
+        # Imshow3DArray(Normalize01(np.transpose(cropped_img_array, (1,2,0))),
+        #               roi=np.transpose(cropped_roi_array, (1,2,0)))
+        # sitk.WriteImage(cropped_img, os.path.join(self.store_path, 'cropped_img.nii.gz'))
+        # sitk.WriteImage(cropped_roi, os.path.join(self.store_path, 'cropped_roi.nii.gz'))
         self.sub_img_array = np.transpose(cropped_img_array, (1, 2, 0))
         self.sub_roi_array = np.transpose(cropped_roi_array, (1, 2, 0))
         return cropped_img, cropped_roi
@@ -157,6 +159,8 @@ class FeatureMapper:
         # without parameters, glcm ,kr=1 ,386s ,cropped img, map shape (3, 122, 128)
 
         # without parameters, glcm ,kr=1 ,566s ,without cropped img, map shape (5, 132, 128)
+
+        # extract original image
         # result = extractor.execute(img_path, roi_path, voxelBased=True)
         for key, val in six.iteritems(result):
             if isinstance(val, sitk.Image):
@@ -170,17 +174,16 @@ class FeatureMapper:
         from MeDIT.SaveAndLoad import LoadNiiData
         _, _, feature_map_array = LoadNiiData(feature_map_path)
         featuremapvisualization = FeatureMapVisualizition()
-        featuremapvisualization.LoadData(r'D:\hospital\EENT\code\FeatureMap\N45\data1.nii',
-                                         r'D:\hospital\EENT\code\FeatureMap\N45\ROI.nii', feature_map_path)
+        featuremapvisualization.LoadData(img_path, roi_path, feature_map_path)
 
         store_figure_path = self.store_path + '\\' + (os.path.split(feature_map_path)[-1]).split('.')[0]
         # hsv/jet/gist_rainbow
-        featuremapvisualization.Show(color_map='rainbow',store_path=store_figure_path)
+        featuremapvisualization.Show(color_map='rainbow', store_path=store_figure_path)
 
 
 #
 feature_mapper = FeatureMapper()
-# #
+# 
 # feature_mapper.seek_candidate_case(r'D:\hospital\EENT\New_test\SeparateByDate\3D_3.0\features3D.csv',
 #                     ['T2_original_glcm_DifferenceEntropy', 'T2_original_glrlm_LongRunEmphasis',
 #                      'T2_original_glszm_HighGrayLevelZoneEmphasis'])
