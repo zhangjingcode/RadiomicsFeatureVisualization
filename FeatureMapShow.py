@@ -3,6 +3,8 @@ import six
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+
 class FeatureMapVisualizition:
     def __init__(self):
         self.original_image_path = ''
@@ -94,7 +96,6 @@ class FeatureMapVisualizition:
 
         plt.show()
 
-
     def ShowColorByROI(self,background_array, fore_array, roi,color_map,threshold_value=1e-6, store_path='',
                        is_show=True):
         if background_array.shape != roi.shape:
@@ -129,6 +130,9 @@ class FeatureMapVisualizition:
 
         if is_show:
             plt.show()
+
+        plt.close()
+        plt.clf()
         return rgb_array
 
     def Show(self, index='', color_map='rainbow', store_path=''):
