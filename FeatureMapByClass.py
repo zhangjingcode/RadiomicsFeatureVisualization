@@ -108,6 +108,7 @@ class FeatureMapper:
 
             # big feature class
             if sub_feature in ['firstorder', 'glcm', 'glrlm', 'ngtdm', 'glszm']:
+                # extract all features
                 sub_feature_setting = {sub_feature: []}
                 feature_dict.update(sub_feature_setting)
 
@@ -123,7 +124,7 @@ class FeatureMapper:
                     sub_filter_name = img_type
 
                 else:
-                    img_setting['imageType'] = img_type
+                    img_setting['imageType'] = 'Original'
                 # if img_type not in img_setting['imageType']:
                 #     img_setting['imageType'].append(img_type)
 
@@ -200,7 +201,7 @@ class FeatureMapper:
                     Therefore the actual size is 2 * kernelRadius + 1. E.g. a value of 1 yields a 3x3x3 kernel, \
                     a value of 2 5x5x5, etc. In case of 2D extraction, the generated kernel will also be a 2D shape
                     (square instead of cube).
-        feature_name: str;
+        feature_name_list: [str], [feature_name1, feature_name2,...] or ['glcm', 'glrlm']
         store_path: str;
 
         Returns
@@ -228,7 +229,7 @@ class FeatureMapper:
                                                                    store_key='original')
 
         if sub_filter_name:
-            # generate filter image
+            # generate filter image firstly for speeding up
             extractor.execute(candidate_img_path, candidate_roi_path, voxelBased=False)
             candidate_img_path = os.path.join(self.store_path, sub_filter_name+'.nii.gz')
             cropped_filter_img, cropped_filter_roi = self.crop_img(candidate_roi_path, candidate_img_path,
@@ -237,14 +238,14 @@ class FeatureMapper:
         #
         #
         else:
-            result = extractor.execute(cropped_original_img, cropped_original_roi , voxelBased=True)
+            result = extractor.execute(cropped_original_img, cropped_original_roi, voxelBased=True)
         # without parameters, glcm ,kr=5 ,646s ,cropped img, map shape (5, 132, 128)
         # without parameters, glcm ,kr=1 ,386s ,cropped img, map shape (3, 122, 128)
 
         # without parameters, glcm ,kr=1 ,566s ,without cropped img, map shape (5, 132, 128)
 
         # extract original image
-        # result = extractor.execute(candidate_img_path, candidate_roi_path, voxelBased=True)
+
         for key, val in six.iteritems(result):
             if isinstance(val, sitk.Image):
                 shape = (sitk.GetArrayFromImage(val)).shape
@@ -263,34 +264,18 @@ class FeatureMapper:
         featuremapvisualization.Show(color_map='rainbow', store_path=store_path)
 
 
-def main():
+def test():
     feature_mapper = FeatureMapper()
-    t1c_features_list = ['original_glcm_ClusterProminence', 'original_glcm_Imc1', 'original_glcm_Imc2',
-                         'original_glcm_MCC', 'original_shape_Sphericity', 'original_shape_SurfaceVolumeRatio']
+    features_name_list = ['original_glcm_DifferenceEntropy', 'original_glrlm_LongRunEmphasis',
+                        'original_glrlm_RunVariance', 'original_glszm_SizeZoneNonUniformityNormalized']
 
-    t2_features_list = ['original_glcm_DifferenceEntropy', 'original_glrlm_LongRunEmphasis',
-                        'original_glrlm_RunVariance', 'original_glszm_SizeZoneNonUniformityNormalized',
-                        'original_glszm_HighGrayLevelZoneEmphasis',
-                        'original_glszm_SizeZoneNonUniformityNormalized',
-                        'original_glszm_SmallAreaEmphasis', 'original_glszm_SmallAreaHighGrayLevelEmphasis']
+    features_class_list = ['glcm', 'glrlm']
+    # feature_mapper.seek_candidate_case(r'D:\hospital\EENT\New_test\SeparateByDate\3D_3.0\features3D.csv',
+    #                                    selected_features_list, 20)
+    img_path = r'.\data1.nii'
+    roi_path = r'.\ROI.nii'
+    store_path = r'.\feature_map'
 
-    selected_features_list = ['T1C_' + index for index in t1c_features_list] + ['T2_' + index for index in t2_features_list]
-    feature_mapper.seek_candidate_case(r'D:\hospital\EENT\New_test\SeparateByDate\3D_3.0\features3D.csv',
-                                       selected_features_list, 20)
-    img_1_path = r'D:\hospital\EENT\code\FeatureMap\N45\data1.nii'
-    roi_1_path = r'D:\hospital\EENT\code\FeatureMap\N45\ROI.nii'
-    store_1_path = r'D:\hospital\EENT\code\FeatureMap\N45_1_T2_feature_map'
-    #
-    img_0_path = r'D:\hospital\EENT\code\FeatureMap\N28\data1.nii'
-    roi_0_path = r'D:\hospital\EENT\code\FeatureMap\N28\ROI.nii'
-    store_0_path = r'D:\hospital\EENT\code\FeatureMap\N28_0_T2_feature_map'
-    # data1 T2, data3 T1C Reg
+    feature_mapper.generate_feature_map(img_path, roi_path, 1, features_name_list, store_path)
+    # feature_mapper.generate_feature_map(img_path, roi_path, 1, feature_class_list, store_path)
 
-    # feature_mapper.generate_feature_map(img_1_path, roi_1_path, 1, t2_features_list,
-    #                                     r'D:\hospital\EENT\code\FeatureMap\N45_1_T2_feature_map')
-    # feature_mapper.generate_feature_map(img_0_path, roi_0_path, 1, t2_features_list,
-    #                                     r'D:\hospital\EENT\code\FeatureMap\N28_0_T2_feature_map')
-    # for sub_feature in t2_features_list:
-    # #
-    #     feature_map_path = os.path.join(store_0_path, sub_feature+'.nrrd')
-    #     feature_mapper.show_feature_map(img_0_path, roi_0_path, feature_map_path, os.path.join(store_0_path, sub_feature))
