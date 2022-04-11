@@ -19,7 +19,7 @@
 # Settings to use, possible settings are listed in the documentation (section "Customizing the extraction").
 setting:
   binWidth: 25
-  label: 7
+  label: 1
   interpolator: 'sitkBSpline' # This is an enumerated value, here None is not allowed
   resampledPixelSpacing: # This disables resampling, as it is interpreted as None, to enable it, specify spacing in x, y, z as [x, y , z]
   weightingNorm: # If no value is specified, it is interpreted as None
@@ -29,23 +29,23 @@ setting:
 
 
 # Image types to use: "Original" for unfiltered image, for possible filters, see documentation.
-imageType:
-#  Original: {} # for dictionaries / mappings, None values are not allowed, '{}' is interpreted as an empty dictionary
-  LoG:
-    # If you include sigma values >5, remember to also increase the padDistance. Because of resampling to (2, 2, 2), the
-    # use of sigmas < 2 mm is not recommended.
-    sigma: [3.0]
-#  Wavelet: {}
-  
-# Featureclasses, from which features must be calculated. If a featureclass is not mentioned, no features are calculated
-# for that class. Otherwise, the specified features are calculated, or, if none are specified, all are calculated.
+#imageType:
+##  Original: {} # for dictionaries / mappings, None values are not allowed, '{}' is interpreted as an empty dictionary
+#  LoG:
+#    # If you include sigma values >5, remember to also increase the padDistance. Because of resampling to (2, 2, 2), the
+#    # use of sigmas < 2 mm is not recommended.
+#    sigma: [3.0]
+##  Wavelet: {}
+#
+## Featureclasses, from which features must be calculated. If a featureclass is not mentioned, no features are calculated
+## for that class. Otherwise, the specified features are calculated, or, if none are specified, all are calculated.
 featureClass:
-#  shape:  # disable redundant Compactness 1 and Compactness 2 features by specifying all other shape features
-#  firstorder: ['Median', 'Minimum'] # specifying an empty list has the same effect as specifying nothing.
+##  shape:  # disable redundant Compactness 1 and Compactness 2 features by specifying all other shape features
+##  firstorder: ['Median', 'Minimum'] # specifying an empty list has the same effect as specifying nothing.
   glcm: ['InverseVariance']
-#  glrlm: # for lists none values are allowed, in this case, all features are enabled
-#  glszm:
-#  gldm:
-#  ngtdm: ['Strength']
+##  glrlm: # for lists none values are allowed, in this case, all features are enabled
+##  glszm:
+##  gldm:
+##  ngtdm: ['Strength']
 voxelSetting:
-  kernelRadius: 2
+  kernelRadius: 3
