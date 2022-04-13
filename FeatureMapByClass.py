@@ -19,7 +19,10 @@ import SimpleITK as sitk
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+
 from SKMRradiomics import featureextractor
+# from radiomics import featureextractor
 from FeatureMapShow import FeatureMapVisualizition
 
 
@@ -177,16 +180,12 @@ class FeatureMapper:
                 print(index_dict[start], 'failed')
                 print('roi:', sub_roi_info)
                 print('img:', sub_img_info)
-        # check cropped image
 
-        from MeDIT.Visualization import Imshow3DArray
-        from MeDIT.Normalize import Normalize01
-        # Imshow3DArray(Normalize01(np.transpose(cropped_img_array, (1,2,0))),
-        #               roi=np.transpose(cropped_roi_array, (1,2,0)))
         sitk.WriteImage(cropped_img, os.path.join(self.store_path, store_key + '_cropped_img.nii.gz'))
         sitk.WriteImage(cropped_roi, os.path.join(self.store_path, store_key + '_cropped_roi.nii.gz'))
         self.sub_img_array = np.transpose(cropped_img_array, (1, 2, 0))
         self.sub_roi_array = np.transpose(cropped_roi_array, (1, 2, 0))
+        print('ROI size: ', np.sum(cropped_roi))
         return cropped_img, cropped_roi
 
     def generate_feature_map(self, candidate_img_path, candidate_roi_path, kernelRadius, feature_name_list, store_path):
@@ -214,10 +213,10 @@ class FeatureMapper:
         self.store_path = store_path
         parameter_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\RadiomicsParams.yaml'
         setting_dict = {'label': 1, 'interpolator': 'sitkBSpline', 'correctMask': True,
-                        'geometryTolerance': 1, 'kernelRadius': self.kernelRadius,
+                        'geometryTolerance': 10, 'kernelRadius': self.kernelRadius,
                         'maskedKernel': True, 'voxelBatch': 50}
 
-        extractor = featureextractor.RadiomicsFeaturesExtractor(parameter_path, self.store_path)
+        extractor = featureextractor.RadiomicsFeaturesExtractor(parameter_path, self.store_path, **setting_dict)
         extractor.disableAllImageTypes()
         extractor.disableAllFeatures()
 
@@ -249,33 +248,45 @@ class FeatureMapper:
         for key, val in six.iteritems(result):
             if isinstance(val, sitk.Image):
                 shape = (sitk.GetArrayFromImage(val)).shape
-                print('feature_map shape is ', shape)
                 # Feature map
                 sitk.WriteImage(val, store_path + '\\' + key + '.nrrd', True)
-                print(time.time() - start_time)
+
 
     def show_feature_map(self, show_img_path, show_roi_path, show_feature_map_path, store_path):
-        from MeDIT.SaveAndLoad import LoadNiiData
-        _, _, feature_map_array = LoadNiiData(show_feature_map_path)
-        featuremapvisualization = FeatureMapVisualizition()
-        featuremapvisualization.LoadData(show_img_path, show_roi_path, show_feature_map_path)
+        feature_map_img = sitk.ReadImage(show_feature_map_path)
+        feature_map_array = sitk.GetArrayFromImage(feature_map_img)
+        feature_map_array.transpose(1, 2, 0)
+        feature_map_visualization = FeatureMapVisualizition()
+        feature_map_visualization.LoadData(show_img_path, show_roi_path, show_feature_map_path)
 
         # hsv/jet/gist_rainbow
-        featuremapvisualization.Show(color_map='rainbow', store_path=store_path)
+        feature_map_visualization.Show(color_map='rainbow', store_path=store_path)
 
 
-def test():
+def main():
     feature_mapper = FeatureMapper()
     features_name_list = ['original_glcm_DifferenceEntropy', 'original_glrlm_LongRunEmphasis',
                         'original_glrlm_RunVariance', 'original_glszm_SizeZoneNonUniformityNormalized']
 
     features_class_list = ['glcm', 'glrlm']
-    # feature_mapper.seek_candidate_case(r'D:\hospital\EENT\New_test\SeparateByDate\3D_3.0\features3D.csv',
-    #                                    selected_features_list, 20)
-    img_path = r'.\data1.nii'
-    roi_path = r'.\ROI.nii'
-    store_path = r'.\feature_map'
+    cur_file_path = Path(__file__).absolute().parent
+    img_path = cur_file_path / 'BreastRADERData' / 'DCE.nii.gz'
+    roi_path = cur_file_path / 'BreastRADERData' / 'DCE_ROI.nii.gz'
 
-    feature_mapper.generate_feature_map(img_path, roi_path, 1, features_name_list, store_path)
-    # feature_mapper.generate_feature_map(img_path, roi_path, 1, feature_class_list, store_path)
+    store_path = cur_file_path / 'BreastRADERData' / 'FeatureMap'
 
+    if not Path(store_path).exists():
+        Path(store_path).mkdir()
+
+    feature_mapper.generate_feature_map(str(img_path), str(roi_path), 1, features_name_list, str(store_path))
+
+    cropped_img_path = cur_file_path / 'BreastRADERData' / 'FeatureMap' / 'original_cropped_img.nii.gz'
+    cropped_roi_path = cur_file_path / 'BreastRADERData' / 'FeatureMap' / 'original_cropped_roi.nii.gz'
+    feature_name = 'original_glszm_SizeZoneNonUniformityNormalized'
+    feature_map = cur_file_path / 'BreastRADERData' / 'FeatureMap' / str(feature_name+'.nrrd')
+    fig_save_path = cur_file_path / 'BreastRADERData' / 'FeatureMap' / feature_name
+    feature_mapper.show_feature_map(str(cropped_img_path), str(cropped_roi_path), str(feature_map),
+                                    str(fig_save_path))
+
+if __name__ == '__main__':
+    main()
