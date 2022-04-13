@@ -4,12 +4,16 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+import time
+import tqdm
+
 
 class FeatureMapVisualizition:
     def __init__(self):
         self.original_image_path = ''
         self.original_roi_path = ''
         self.feature_map_path = ''
+        self.feature_name = ''
 
     def LoadData(self,original_image_path, original_roi_path, feature_map_path):
         self.original_image_path = original_image_path
@@ -39,7 +43,7 @@ class FeatureMapVisualizition:
             z = np.unique(z)
             return x, y, z
 
-    def LoadNiiData(self,file_path, dtype=np.float32, is_show_info=False, is_flip=True, flip_log=[0, 0, 0]):
+    def LoadNiiData(self, file_path, dtype=np.float32, is_show_info=False, is_flip=True, flip_log=[0, 0, 0]):
         image = sitk.ReadImage(file_path)
         data = np.asarray(sitk.GetArrayFromImage(image), dtype=dtype)
 
@@ -70,7 +74,7 @@ class FeatureMapVisualizition:
       feature_roi = np.zeros_like(self.original_roi_array, dtype=np.float32)
       feature_roi[np.min(x):np.min(x) + self.original_feature_map_array.shape[0],
       np.min(y):np.min(y) + self.original_feature_map_array.shape[1],
-      np.min(z):np.min(z) + self.original_feature_map_array.shape[2]] = self.original_feature_map_array
+      :self.original_feature_map_array.shape[2]]= self.original_feature_map_array
       return feature_roi
 
     def Normalize01(self,data, clip=0.0):
@@ -96,9 +100,23 @@ class FeatureMapVisualizition:
 
         plt.show()
 
-    def ShowColorByROI(self,background_array, fore_array, roi,color_map,threshold_value=1e-6, store_path='',
+    def ShowColorByROI(self, background_array, fore_array, roi_array, color_map, feature_name, threshold_value=1e-6, size=0, store_path='',
                        is_show=True):
-        if background_array.shape != roi.shape:
+
+        roi_center = [int(np.mean(np.where(roi_array == 1)[0])), int(np.mean(np.where(roi_array == 1)[1]))]
+
+        if size:
+            roi_array = roi_array[roi_center[0] - size:roi_center[0] + size,
+                            roi_center[1] - size:roi_center[1] + size]
+
+            background_array = background_array[roi_center[0] - size:roi_center[0] + size,
+                            roi_center[1] - size:roi_center[1] + size]
+
+            fore_array = fore_array[roi_center[0] - size:roi_center[0] + size,
+                               roi_center[1] - size:roi_center[1] + size]
+
+
+        if background_array.shape != roi_array.shape:
             print('Array and ROI must have same shape')
             return
 
@@ -108,22 +126,21 @@ class FeatureMapVisualizition:
         rgba_array = cmap(fore_array)
         rgb_array = np.delete(rgba_array, 3, 2)
 
-        print(background_array.shape)
-        print(rgb_array.shape)
+        index_roi_x, index_roi_y = np.where(roi_array < threshold_value)
 
-        index_roi_x, index_roi_y = np.where(roi < threshold_value)
-        for index_x, index_y in zip(index_roi_x, index_roi_y):
+        start_time = time.time()
+        index_list = range(len(index_roi_x))
+        for position_index in tqdm.tqdm(index_list):
+            index_x, index_y = index_roi_x[position_index], index_roi_y[position_index]
+
             rgb_array[index_x, index_y, :] = background_array[index_x, index_y]
-
+        print(time.time()-start_time)
         plt.imshow(rgb_array, cmap=color_map)
         plt.colorbar()
         plt.axis('off')
         plt.gca().set_axis_off()
-        plt.title(self.feature_name)
-        # plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        # plt.margins(0.1, 0.2)
-        plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        plt.title(feature_name)
+
         if store_path:
             plt.savefig(store_path+'.jpg', format='jpg', dpi=300, bbox_inches='tight', pad_inches=0)
             plt.savefig(store_path+'.eps', format='eps', dpi=600, bbox_inches='tight', pad_inches=0)
@@ -146,7 +163,7 @@ class FeatureMapVisualizition:
             fore_array = self.original_feature_map_array[:, :, index]
             roi = self.original_roi_array[:, :, index]
 
-        self.ShowColorByROI(background_array, fore_array, roi, color_map=color_map, store_path=store_path)
+        self.ShowColorByROI(background_array, fore_array, roi, color_map=color_map, feature_name=self.feature_name,store_path=store_path, is_show=False)
 
 def main():
     image_path = r'D:\MyScript\RadiomicsVisualization\RadiomicsFeatureVisualization\data2.nii.gz'
@@ -161,6 +178,7 @@ def main():
     #hsv/jet/gist_rainbow
     featuremapvisualization.Show(color_map='seismic', store_path=store_figure_path)
     # featuremapvisualization.ShowTransforedImage(store_figure_path)
+
 if __name__ == '__main__':
     main()
 
