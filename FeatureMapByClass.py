@@ -249,7 +249,7 @@ class FeatureMapper:
             if isinstance(val, sitk.Image):
                 shape = (sitk.GetArrayFromImage(val)).shape
                 # Feature map
-                sitk.WriteImage(val, store_path + '\\' + key + '.nrrd', True)
+                sitk.WriteImage(val, os.path.join(store_path, key + '.nrrd'), True)
 
 
     def show_feature_map(self, show_img_path, show_roi_path, show_feature_map_path, store_path):
